@@ -1,34 +1,43 @@
 const client = require('./connection.js')
 const express = require('express')
-const router= express.Router();
+const router = express.Router();
+const bodyParser = require('body-parser')
+router.use(bodyParser.json());
 
 router.get("/", (req, res, next) => {
     res.status(200).send("Hello world");
 });
 
-const bodyParser = require("body-parser");
-router.use(bodyParser.json());
-
-router.post('/register',(req,res)=>{
+router.get("/all",async (req, res) => {
+    const user = await client.query(`select * from user5`)
+        if (user) {
+            res.send(user.rows);
+        } else {
+            console.log("err", err, "result", result)
+        }
+    });
+   
+router.post('/register', async(req, res) => {
     const reg = req.body;
-    let insertQuery = `insert into user5(first_name,last_name,mobile_no,email,user_id,password) 
-                       values('${reg.first_name}','${reg.last_name}','${reg.mobile_no}','${reg.email}','${reg.user_id}','${reg.password}')`
-
-    client.query(insertQuery, (err, result)=>{
-        if(!err){
+    console.log(reg);
+    let insertQuery = client.query(`insert into user5(first_name,last_name,mobile_no,email,user_id,password) 
+                       values('${reg.first_name}','${reg.last_name}','${reg.mobile_no}','${reg.email}','${reg.user_id}','${reg.password}')`)
+    const insert = await insertQuery;
+        if (insert) {
+            console.log(reg);
             res.send('Insertion was successful')
         }
-        else{ console.log(err.message) }
+        else { 
+            console.log("err")
+         }
     })
-})
-
+  
 router.post('/login', async (req, res) => {
     console.log(req.body);
     const { user_id, password } = req.body;
     try {
         const result = await client.query('SELECT * FROM user5 WHERE user_id = $1 AND password = $2', [user_id, password]);
         console.log(`SELECT * FROM user5 WHERE user_id ="${user_id}" AND password ="${password}"`);
-        // const result = await Pool.query(`SELECT * FROM users WHERE user_id =${user_id} AND password =${password}`);
         if (result.rows.length === 0) {
             res.status(401).json({ success: false, message: 'Invalid user_id or password' });
         } else {
@@ -45,7 +54,14 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ success: false, message: 'An error occurred while logging in' });
     }
 });
+router.delete('/:first_name', async (req, res) => {
+    const insertQuery = `delete from user5 where first_name=${req.params.first_name}`
+    const del = await client.query(insertQuery)
+    if (del) {
+        res.send('Deletion was successful')
+    }
+    else { console.log(err.message) }
+})
 
-client.end();
 module.exports = router;
 
