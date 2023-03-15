@@ -1,16 +1,16 @@
-const {Client} = require('pg');
+const { Client } = require('pg');
 
 const client = new Client({
-    host : "localhost",
+    host: "localhost",
     user: "postgres",
     port: 5432,
     password: "123",
     database: "Reg"
 })
 
-client.connect(function(err){
+client.connect(function (err) {
     console.log("connection done");
-    if(err){
+    if (err) {
         console.log("Not Connected");
     }
 })
